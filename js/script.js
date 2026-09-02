@@ -31,6 +31,7 @@
       annualRatePct: parseFloat(document.getElementById('interest-rate').value) || 0,
       termYears: parseFloat(document.getElementById('loan-term').value) || 0,
       extraPayment: parseFloat(document.getElementById('extra-payment').value) || 0,
+      escalationPct: parseFloat(document.getElementById('escalation-rate').value) || 0,
     };
   }
 
@@ -44,6 +45,8 @@
 
     if (result.newTermMonths !== undefined) {
       extraResultsSection.hidden = false;
+      const paymentLabel = document.getElementById('out-new-payment-label');
+      paymentLabel.textContent = result.escalationPct > 0 ? 'New monthly payment (year 1)' : 'New monthly payment';
       document.getElementById('out-new-payment').textContent = formatCurrency(result.newMonthlyPayment);
       document.getElementById('out-new-term').textContent = formatMonths(result.newTermMonths);
       document.getElementById('out-total-extra').textContent = formatCurrency(result.totalPaidWithExtra);

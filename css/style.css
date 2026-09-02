@@ -87,6 +87,13 @@ header h1 {
   outline-offset: 1px;
 }
 
+.field .hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .results-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

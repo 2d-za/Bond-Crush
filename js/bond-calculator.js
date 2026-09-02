@@ -61,10 +61,60 @@
   }
 
   /**
-   * Full calculation used by the calculator UI: standard repayment plus,
-   * optionally, the effect of an additional monthly contribution.
+   * Amortises a loan where, on top of the fixed standard repayment, an
+   * extra monthly contribution is paid that grows by a fixed percentage
+   * at the start of every subsequent year (e.g. R1,000 extra with a 10%
+   * yearly escalation becomes R1,100 extra from month 13).
+   * @param {number} loanAmount
+   * @param {number} annualRatePct
+   * @param {number} standardPayment - fixed standard monthly repayment
+   * @param {number} extraPayment - additional amount paid in year 1
+   * @param {number} escalationPct - yearly increase applied to extraPayment
+   * @returns {{months: number, totalPaid: number, totalInterest: number}}
    */
-  function calculateBond({ purchasePrice, deposit = 0, annualRatePct, termYears, extraPayment = 0 }) {
+  function amortizeWithEscalatingExtra(loanAmount, annualRatePct, standardPayment, extraPayment, escalationPct) {
+    const monthlyRate = annualRatePct / 100 / 12;
+    let balance = loanAmount;
+    let totalPaid = 0;
+    let months = 0;
+
+    const MAX_MONTHS = 12 * 100; // safety cap: 100 years
+    while (balance > 0 && months < MAX_MONTHS) {
+      const yearIndex = Math.floor(months / 12);
+      const currentExtra = extraPayment * Math.pow(1 + escalationPct / 100, yearIndex);
+      const interest = balance * monthlyRate;
+      let payment = standardPayment + currentExtra;
+      if (payment > balance + interest) payment = balance + interest;
+
+      balance = balance + interest - payment;
+      totalPaid += payment;
+      months += 1;
+    }
+
+    if (balance > 0) {
+      return { months: Infinity, totalPaid: Infinity, totalInterest: Infinity };
+    }
+
+    return {
+      months,
+      totalPaid,
+      totalInterest: totalPaid - loanAmount,
+    };
+  }
+
+  /**
+   * Full calculation used by the calculator UI: standard repayment plus,
+   * optionally, the effect of an additional monthly contribution that can
+   * escalate by a fixed percentage every year.
+   */
+  function calculateBond({
+    purchasePrice,
+    deposit = 0,
+    annualRatePct,
+    termYears,
+    extraPayment = 0,
+    escalationPct = 0,
+  }) {
     const loanAmount = Math.max(purchasePrice - deposit, 0);
     const monthlyRepayment = calculateMonthlyRepayment(loanAmount, annualRatePct, termYears);
     const standard = amortize(loanAmount, annualRatePct, monthlyRepayment);
@@ -78,8 +128,15 @@
     };
 
     if (extraPayment > 0) {
-      const withExtra = amortize(loanAmount, annualRatePct, monthlyRepayment + extraPayment);
+      const withExtra = amortizeWithEscalatingExtra(
+        loanAmount,
+        annualRatePct,
+        monthlyRepayment,
+        extraPayment,
+        escalationPct
+      );
       result.newMonthlyPayment = monthlyRepayment + extraPayment;
+      result.escalationPct = escalationPct;
       result.newTermMonths = withExtra.months;
       result.totalPaidWithExtra = withExtra.totalPaid;
       result.totalInterestWithExtra = withExtra.totalInterest;
@@ -90,7 +147,7 @@
     return result;
   }
 
-  const api = { calculateMonthlyRepayment, amortize, calculateBond };
+  const api = { calculateMonthlyRepayment, amortize, amortizeWithEscalatingExtra, calculateBond };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
