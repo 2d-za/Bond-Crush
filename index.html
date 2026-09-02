@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bond Repayment Calculator</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Bond Repayment Calculator</h1>
+      <p class="subtitle">Work out your monthly bond repayment, then see how much you save by paying in extra.</p>
+    </header>
+
+    <section class="card">
+      <h2>Loan details</h2>
+      <form id="bond-form">
+        <div class="field">
+          <label for="purchase-price">Purchase price (R)</label>
+          <input type="number" id="purchase-price" min="0" step="1000" value="1625000" required />
+        </div>
+
+        <div class="field">
+          <label for="deposit">Deposit (R)</label>
+          <input type="number" id="deposit" min="0" step="1000" value="0" />
+        </div>
+
+        <div class="field">
+          <label for="interest-rate">Interest rate (% per year)</label>
+          <input type="number" id="interest-rate" min="0" step="0.01" value="10.5" required />
+        </div>
+
+        <div class="field">
+          <label for="loan-term">Loan term (years)</label>
+          <input type="number" id="loan-term" min="1" step="1" value="20" required />
+        </div>
+
+        <div class="field">
+          <label for="extra-payment">Additional monthly payment (R)</label>
+          <input type="number" id="extra-payment" min="0" step="100" value="1000" />
+        </div>
+
+        <details class="escalation" open>
+          <summary>Add a yearly escalation</summary>
+          <div class="field">
+            <label for="escalation-rate">Yearly escalation on additional payment (%)</label>
+            <input type="number" id="escalation-rate" min="0" step="0.5" value="0" />
+            <p class="hint">How much your additional monthly payment increases each year.</p>
+          </div>
+        </details>
+      </form>
+    </section>
+
+    <section class="card results" id="results" hidden>
+      <h2>Results</h2>
+      <div class="results-grid">
+        <div class="result">
+          <span class="label">Loan amount</span>
+          <span class="value" id="out-loan-amount">-</span>
+        </div>
+        <div class="result">
+          <span class="label">Standard monthly repayment</span>
+          <span class="value" id="out-monthly-repayment">-</span>
+        </div>
+        <div class="result">
+          <span class="label">Total repaid (standard)</span>
+          <span class="value" id="out-total-standard">-</span>
+        </div>
+        <div class="result">
+          <span class="label">Total interest (standard)</span>
+          <span class="value" id="out-interest-standard">-</span>
+        </div>
+      </div>
+
+      <div class="results-grid extra-results" id="extra-results" hidden>
+        <h3>With your additional payment</h3>
+        <div class="result">
+          <span class="label" id="out-new-payment-label">New monthly payment</span>
+          <span class="value" id="out-new-payment">-</span>
+        </div>
+        <div class="result">
+          <span class="label">New loan term</span>
+          <span class="value" id="out-new-term">-</span>
+        </div>
+        <div class="result">
+          <span class="label">Total repaid (with extra)</span>
+          <span class="value" id="out-total-extra">-</span>
+        </div>
+        <div class="result">
+          <span class="label">Total interest (with extra)</span>
+          <span class="value" id="out-interest-extra">-</span>
+        </div>
+        <div class="result highlight">
+          <span class="label">Interest saved</span>
+          <span class="value" id="out-interest-saved">-</span>
+        </div>
+        <div class="result highlight">
+          <span class="label">Time saved</span>
+          <span class="value" id="out-time-saved">-</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="schedule-card" hidden>
+      <h2>Yearly repayment schedule</h2>
+      <p class="hint" id="schedule-summary" hidden></p>
+      <div class="table-wrap">
+        <table id="schedule-table">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th class="extra-col">Monthly payment</th>
+              <th>Interest that year</th>
+              <th>Balance remaining</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/bond-calculator.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
