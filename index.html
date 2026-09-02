@@ -102,6 +102,17 @@
       </div>
     </section>
 
+    <section class="card" id="chart-card" hidden>
+      <h2>Balance over time</h2>
+      <div class="chart-wrap">
+        <svg id="balance-chart" width="100%" height="220" viewBox="0 0 640 220" preserveAspectRatio="xMinYMid meet"></svg>
+      </div>
+      <div class="legend">
+        <span><i class="swatch swatch-standard"></i>Standard</span>
+        <span id="legend-extra" hidden><i class="swatch swatch-extra"></i>With extra payment</span>
+      </div>
+    </section>
+
     <section class="card" id="schedule-card" hidden>
       <h2>Yearly repayment schedule</h2>
       <p class="hint" id="schedule-summary" hidden></p>

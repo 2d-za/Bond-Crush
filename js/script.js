@@ -6,6 +6,9 @@
   const scheduleTable = document.getElementById('schedule-table');
   const scheduleBody = document.getElementById('schedule-body');
   const scheduleSummary = document.getElementById('schedule-summary');
+  const chartCard = document.getElementById('chart-card');
+  const chartSvg = document.getElementById('balance-chart');
+  const legendExtra = document.getElementById('legend-extra');
 
   const currencyFormatter = new Intl.NumberFormat('en-ZA', {
     style: 'currency',
@@ -26,6 +29,11 @@
     if (years > 0) parts.push(`${years} yr${years !== 1 ? 's' : ''}`);
     if (months > 0) parts.push(`${months} mo${months !== 1 ? 's' : ''}`);
     return parts.length ? parts.join(' ') : '0 months';
+  }
+
+  function formatCompactCurrency(value) {
+    if (value >= 1000000) return 'R' + (value / 1000000).toFixed(1) + 'M';
+    return 'R' + Math.round(value / 1000) + 'k';
   }
 
   function readInputs() {
@@ -62,6 +70,83 @@
     }
 
     renderSchedule(result);
+    drawChart(result);
+  }
+
+  function drawChart(result) {
+    const hasExtra = result.newTermMonths !== undefined;
+    chartCard.hidden = false;
+    legendExtra.hidden = !hasExtra;
+
+    const W = 640,
+      H = 220,
+      padL = 54,
+      padR = 14,
+      padT = 14,
+      padB = 28;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+    const maxX = result.standardTermMonths / 12;
+    const maxY = result.loanAmount;
+
+    const standardPoints = [{ x: 0, y: result.loanAmount }].concat(
+      result.schedule.map((row) => ({ x: row.year, y: row.standardBalance }))
+    );
+    const extraPoints = hasExtra
+      ? [{ x: 0, y: result.loanAmount }].concat(result.schedule.map((row) => ({ x: row.year, y: row.extraBalance })))
+      : null;
+
+    function toPath(points) {
+      return points
+        .map((p, i) => {
+          const x = padL + (p.x / maxX) * plotW;
+          const y = padT + (1 - p.y / maxY) * plotH;
+          return (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+        })
+        .join(' ');
+    }
+
+    const rootStyles = getComputedStyle(document.documentElement);
+    const accentColor = rootStyles.getPropertyValue('--accent').trim();
+    const highlightColor = rootStyles.getPropertyValue('--highlight-text').trim();
+    const lineColor = rootStyles.getPropertyValue('--border').trim();
+
+    let gridLines = '';
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + (i / 4) * plotH;
+      const value = maxY * (1 - i / 4);
+      gridLines += `<line x1="${padL}" x2="${W - padR}" y1="${y.toFixed(1)}" y2="${y.toFixed(
+        1
+      )}" stroke="${lineColor}" stroke-width="1"/>`;
+      gridLines += `<text x="${padL - 8}" y="${(y + 3).toFixed(1)}" text-anchor="end">${formatCompactCurrency(
+        value
+      )}</text>`;
+    }
+
+    const yearsTotal = Math.round(maxX);
+    const step = yearsTotal > 15 ? 5 : yearsTotal > 6 ? 2 : 1;
+    let xLabels = '';
+    for (let yr = 0; yr <= yearsTotal; yr += step) {
+      const x = padL + (yr / maxX) * plotW;
+      xLabels += `<text x="${x.toFixed(1)}" y="${H - 8}" text-anchor="middle">yr ${yr}</text>`;
+    }
+
+    let marker = '';
+    if (hasExtra && result.newTermMonths < result.standardTermMonths) {
+      const payoffPoint = extraPoints.find((p) => p.y <= 0);
+      if (payoffPoint) {
+        const x = padL + (payoffPoint.x / maxX) * plotW;
+        const y = padT + plotH;
+        marker = `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${highlightColor}"/>`;
+      }
+    }
+
+    chartSvg.innerHTML =
+      gridLines +
+      xLabels +
+      `<path d="${toPath(standardPoints)}" fill="none" stroke="${accentColor}" stroke-width="2"/>` +
+      (hasExtra ? `<path d="${toPath(extraPoints)}" fill="none" stroke="${highlightColor}" stroke-width="2.25"/>` : '') +
+      marker;
   }
 
   function renderSchedule(result) {
@@ -113,6 +198,7 @@
     if (inputs.purchasePrice <= 0 || inputs.termYears <= 0) {
       resultsSection.hidden = true;
       scheduleCard.hidden = true;
+      chartCard.hidden = true;
       return;
     }
     const result = window.BondCalculator.calculateBond(inputs);
