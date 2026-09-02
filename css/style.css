@@ -169,3 +169,50 @@ header h1 {
 .result.highlight .value {
   color: var(--highlight-text);
 }
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+#schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+#schedule-table th,
+#schedule-table td {
+  padding: 0.55rem 0.75rem;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+#schedule-table th:first-child,
+#schedule-table td:first-child {
+  text-align: left;
+}
+
+#schedule-table thead th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 2px solid var(--border);
+}
+
+#schedule-table tbody tr:hover {
+  background: var(--bg);
+}
+
+#schedule-table .paid-off {
+  color: var(--highlight-text);
+  font-weight: 600;
+}
+
+#schedule-table .dash {
+  color: var(--muted);
+}
+
+#schedule-table.no-extra .extra-col {
+  display: none;
+}

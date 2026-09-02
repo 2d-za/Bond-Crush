@@ -2,6 +2,9 @@
   const form = document.getElementById('bond-form');
   const resultsSection = document.getElementById('results');
   const extraResultsSection = document.getElementById('extra-results');
+  const scheduleCard = document.getElementById('schedule-card');
+  const scheduleTable = document.getElementById('schedule-table');
+  const scheduleBody = document.getElementById('schedule-body');
 
   const currencyFormatter = new Intl.NumberFormat('en-ZA', {
     style: 'currency',
@@ -56,12 +59,49 @@
     } else {
       extraResultsSection.hidden = true;
     }
+
+    renderSchedule(result);
+  }
+
+  function renderSchedule(result) {
+    const hasExtra = result.newTermMonths !== undefined;
+    scheduleCard.hidden = false;
+    scheduleTable.classList.toggle('no-extra', !hasExtra);
+
+    scheduleBody.innerHTML = '';
+    result.schedule.forEach((row) => {
+      const tr = document.createElement('tr');
+
+      const extraPaymentCell =
+        row.extraPayment !== null
+          ? formatCurrency(row.extraPayment)
+          : hasExtra
+          ? '<span class="dash">&mdash;</span>'
+          : '';
+      const extraBalanceCell = row.extraJustPaidOff
+        ? '<span class="paid-off">Paid off</span>'
+        : row.extraBalance !== null
+        ? formatCurrency(row.extraBalance)
+        : hasExtra
+        ? '<span class="dash">&mdash;</span>'
+        : '';
+
+      tr.innerHTML = `
+        <td>${row.year}</td>
+        <td>${formatCurrency(row.standardPayment)}</td>
+        <td>${formatCurrency(row.standardBalance)}</td>
+        <td class="extra-col">${extraPaymentCell}</td>
+        <td class="extra-col">${extraBalanceCell}</td>
+      `;
+      scheduleBody.appendChild(tr);
+    });
   }
 
   function recalculate() {
     const inputs = readInputs();
     if (inputs.purchasePrice <= 0 || inputs.termYears <= 0) {
       resultsSection.hidden = true;
+      scheduleCard.hidden = true;
       return;
     }
     const result = window.BondCalculator.calculateBond(inputs);

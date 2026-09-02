@@ -103,6 +103,60 @@
   }
 
   /**
+   * Builds a year-by-year schedule of that year's monthly payment and the
+   * balance remaining at year end, for the standard repayment and,
+   * optionally, the escalating extra-payment scenario. Runs for the full
+   * standard term so the standard column always has a value, even once the
+   * extra-payment scenario has already paid off.
+   * @returns {Array<{year:number, standardPayment:number, standardBalance:number, extraPayment:number|null, extraBalance:number|null, extraJustPaidOff:boolean}>}
+   */
+  function buildYearlySchedule(loanAmount, annualRatePct, termYears, monthlyRepayment, extraPayment, escalationPct) {
+    const monthlyRate = annualRatePct / 100 / 12;
+    const hasExtra = extraPayment > 0;
+    let balanceStandard = loanAmount;
+    let balanceExtra = loanAmount;
+    let extraPaidOff = false;
+    const rows = [];
+
+    for (let year = 1; year <= termYears; year++) {
+      const extraForYear = hasExtra ? extraPayment * Math.pow(1 + escalationPct / 100, year - 1) : 0;
+      const standardPaymentForYear = monthlyRepayment;
+      const extraPaymentForYear = monthlyRepayment + extraForYear;
+      const wasPaidOffBeforeThisYear = extraPaidOff;
+
+      for (let m = 0; m < 12; m++) {
+        if (balanceStandard > 0) {
+          const interest = balanceStandard * monthlyRate;
+          let payment = standardPaymentForYear;
+          if (payment > balanceStandard + interest) payment = balanceStandard + interest;
+          balanceStandard = balanceStandard + interest - payment;
+        }
+        if (hasExtra && balanceExtra > 0) {
+          const interest = balanceExtra * monthlyRate;
+          let payment = extraPaymentForYear;
+          if (payment > balanceExtra + interest) payment = balanceExtra + interest;
+          balanceExtra = balanceExtra + interest - payment;
+        }
+      }
+
+      balanceStandard = Math.max(balanceStandard, 0);
+      balanceExtra = Math.max(balanceExtra, 0);
+      if (hasExtra && balanceExtra <= 0) extraPaidOff = true;
+
+      rows.push({
+        year,
+        standardPayment: standardPaymentForYear,
+        standardBalance: balanceStandard,
+        extraPayment: hasExtra && !wasPaidOffBeforeThisYear ? extraPaymentForYear : null,
+        extraBalance: hasExtra ? balanceExtra : null,
+        extraJustPaidOff: hasExtra && !wasPaidOffBeforeThisYear && extraPaidOff,
+      });
+    }
+
+    return rows;
+  }
+
+  /**
    * Full calculation used by the calculator UI: standard repayment plus,
    * optionally, the effect of an additional monthly contribution that can
    * escalate by a fixed percentage every year.
@@ -125,6 +179,7 @@
       standardTermMonths: termYears * 12,
       totalPaidStandard: standard.totalPaid,
       totalInterestStandard: standard.totalInterest,
+      schedule: buildYearlySchedule(loanAmount, annualRatePct, termYears, monthlyRepayment, extraPayment, escalationPct),
     };
 
     if (extraPayment > 0) {
@@ -147,7 +202,7 @@
     return result;
   }
 
-  const api = { calculateMonthlyRepayment, amortize, amortizeWithEscalatingExtra, calculateBond };
+  const api = { calculateMonthlyRepayment, amortize, amortizeWithEscalatingExtra, buildYearlySchedule, calculateBond };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
