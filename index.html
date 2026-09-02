@@ -18,7 +18,7 @@
       <form id="bond-form">
         <div class="field">
           <label for="purchase-price">Purchase price (R)</label>
-          <input type="number" id="purchase-price" min="0" step="1000" value="1500000" required />
+          <input type="number" id="purchase-price" min="0" step="1000" value="1625000" required />
         </div>
 
         <div class="field">
@@ -28,7 +28,7 @@
 
         <div class="field">
           <label for="interest-rate">Interest rate (% per year)</label>
-          <input type="number" id="interest-rate" min="0" step="0.01" value="11.25" required />
+          <input type="number" id="interest-rate" min="0" step="0.01" value="10.5" required />
         </div>
 
         <div class="field">
@@ -38,10 +38,10 @@
 
         <div class="field">
           <label for="extra-payment">Additional monthly payment (R)</label>
-          <input type="number" id="extra-payment" min="0" step="100" value="0" />
+          <input type="number" id="extra-payment" min="0" step="100" value="1000" />
         </div>
 
-        <details class="escalation">
+        <details class="escalation" open>
           <summary>Add a yearly escalation</summary>
           <div class="field">
             <label for="escalation-rate">Yearly escalation on additional payment (%)</label>
@@ -104,17 +104,15 @@
 
     <section class="card" id="schedule-card" hidden>
       <h2>Yearly repayment schedule</h2>
+      <p class="hint" id="schedule-summary" hidden></p>
       <div class="table-wrap">
         <table id="schedule-table">
           <thead>
             <tr>
               <th>Year</th>
-              <th>Monthly repayment</th>
+              <th class="extra-col">Monthly payment</th>
               <th>Interest that year</th>
               <th>Balance remaining</th>
-              <th class="extra-col">Monthly payment (with extra)</th>
-              <th class="extra-col">Interest that year (with extra)</th>
-              <th class="extra-col">Balance remaining (with extra)</th>
             </tr>
           </thead>
           <tbody id="schedule-body"></tbody>

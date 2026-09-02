@@ -5,6 +5,7 @@
   const scheduleCard = document.getElementById('schedule-card');
   const scheduleTable = document.getElementById('schedule-table');
   const scheduleBody = document.getElementById('schedule-body');
+  const scheduleSummary = document.getElementById('schedule-summary');
 
   const currencyFormatter = new Intl.NumberFormat('en-ZA', {
     style: 'currency',
@@ -68,30 +69,41 @@
     scheduleCard.hidden = false;
     scheduleTable.classList.toggle('no-extra', !hasExtra);
 
+    if (hasExtra) {
+      scheduleSummary.hidden = false;
+      scheduleSummary.textContent = `Without the extra payment, the standard repayment stays fixed at ${formatCurrency(
+        result.monthlyRepayment
+      )} a month for the full ${formatMonths(result.standardTermMonths)} term. The table below shows your plan with the additional payment.`;
+    } else {
+      scheduleSummary.hidden = true;
+    }
+
+    const dash = '<span class="dash">&mdash;</span>';
+
     scheduleBody.innerHTML = '';
     result.schedule.forEach((row) => {
       const tr = document.createElement('tr');
 
-      const dash = '<span class="dash">&mdash;</span>';
-      const extraPaymentCell = row.extraPayment !== null ? formatCurrency(row.extraPayment) : hasExtra ? dash : '';
-      const extraInterestCell = row.extraInterest !== null ? formatCurrency(row.extraInterest) : hasExtra ? dash : '';
-      const extraBalanceCell = row.extraJustPaidOff
-        ? '<span class="paid-off">Paid off</span>'
-        : row.extraBalance !== null
-        ? formatCurrency(row.extraBalance)
-        : hasExtra
-        ? dash
-        : '';
-
-      tr.innerHTML = `
-        <td>${row.year}</td>
-        <td>${formatCurrency(row.standardPayment)}</td>
-        <td>${formatCurrency(row.standardInterest)}</td>
-        <td>${formatCurrency(row.standardBalance)}</td>
-        <td class="extra-col">${extraPaymentCell}</td>
-        <td class="extra-col">${extraInterestCell}</td>
-        <td class="extra-col">${extraBalanceCell}</td>
-      `;
+      if (hasExtra) {
+        const paymentCell = row.extraPayment !== null ? formatCurrency(row.extraPayment) : dash;
+        const interestCell = row.extraInterest !== null ? formatCurrency(row.extraInterest) : dash;
+        const balanceCell = row.extraJustPaidOff
+          ? '<span class="paid-off">Paid off</span>'
+          : formatCurrency(row.extraBalance);
+        tr.innerHTML = `
+          <td>${row.year}</td>
+          <td class="extra-col">${paymentCell}</td>
+          <td>${interestCell}</td>
+          <td>${balanceCell}</td>
+        `;
+      } else {
+        tr.innerHTML = `
+          <td>${row.year}</td>
+          <td class="extra-col"></td>
+          <td>${formatCurrency(row.standardInterest)}</td>
+          <td>${formatCurrency(row.standardBalance)}</td>
+        `;
+      }
       scheduleBody.appendChild(tr);
     });
   }

@@ -94,6 +94,13 @@ header h1 {
   line-height: 1.4;
 }
 
+#schedule-summary {
+  margin: -0.5rem 0 1.1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .escalation {
   margin-bottom: 1rem;
 }
