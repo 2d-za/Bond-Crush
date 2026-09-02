@@ -94,6 +94,38 @@ header h1 {
   line-height: 1.4;
 }
 
+.escalation {
+  margin-bottom: 1rem;
+}
+
+.escalation summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+
+.escalation summary::-webkit-details-marker {
+  display: none;
+}
+
+.escalation summary::before {
+  content: "+";
+  font-weight: 600;
+}
+
+.escalation[open] summary::before {
+  content: "\2212";
+}
+
+.escalation .field {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+}
+
 .results-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
