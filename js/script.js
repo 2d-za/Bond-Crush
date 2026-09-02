@@ -72,25 +72,24 @@
     result.schedule.forEach((row) => {
       const tr = document.createElement('tr');
 
-      const extraPaymentCell =
-        row.extraPayment !== null
-          ? formatCurrency(row.extraPayment)
-          : hasExtra
-          ? '<span class="dash">&mdash;</span>'
-          : '';
+      const dash = '<span class="dash">&mdash;</span>';
+      const extraPaymentCell = row.extraPayment !== null ? formatCurrency(row.extraPayment) : hasExtra ? dash : '';
+      const extraInterestCell = row.extraInterest !== null ? formatCurrency(row.extraInterest) : hasExtra ? dash : '';
       const extraBalanceCell = row.extraJustPaidOff
         ? '<span class="paid-off">Paid off</span>'
         : row.extraBalance !== null
         ? formatCurrency(row.extraBalance)
         : hasExtra
-        ? '<span class="dash">&mdash;</span>'
+        ? dash
         : '';
 
       tr.innerHTML = `
         <td>${row.year}</td>
         <td>${formatCurrency(row.standardPayment)}</td>
+        <td>${formatCurrency(row.standardInterest)}</td>
         <td>${formatCurrency(row.standardBalance)}</td>
         <td class="extra-col">${extraPaymentCell}</td>
+        <td class="extra-col">${extraInterestCell}</td>
         <td class="extra-col">${extraBalanceCell}</td>
       `;
       scheduleBody.appendChild(tr);

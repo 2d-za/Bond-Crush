@@ -103,12 +103,13 @@
   }
 
   /**
-   * Builds a year-by-year schedule of that year's monthly payment and the
+   * Builds a year-by-year schedule of that year's monthly payment, the
+   * interest incurred on the outstanding principal that year, and the
    * balance remaining at year end, for the standard repayment and,
    * optionally, the escalating extra-payment scenario. Runs for the full
    * standard term so the standard column always has a value, even once the
    * extra-payment scenario has already paid off.
-   * @returns {Array<{year:number, standardPayment:number, standardBalance:number, extraPayment:number|null, extraBalance:number|null, extraJustPaidOff:boolean}>}
+   * @returns {Array<{year:number, standardPayment:number, standardInterest:number, standardBalance:number, extraPayment:number|null, extraInterest:number|null, extraBalance:number|null, extraJustPaidOff:boolean}>}
    */
   function buildYearlySchedule(loanAmount, annualRatePct, termYears, monthlyRepayment, extraPayment, escalationPct) {
     const monthlyRate = annualRatePct / 100 / 12;
@@ -123,6 +124,8 @@
       const standardPaymentForYear = monthlyRepayment;
       const extraPaymentForYear = monthlyRepayment + extraForYear;
       const wasPaidOffBeforeThisYear = extraPaidOff;
+      let standardInterestForYear = 0;
+      let extraInterestForYear = 0;
 
       for (let m = 0; m < 12; m++) {
         if (balanceStandard > 0) {
@@ -130,12 +133,14 @@
           let payment = standardPaymentForYear;
           if (payment > balanceStandard + interest) payment = balanceStandard + interest;
           balanceStandard = balanceStandard + interest - payment;
+          standardInterestForYear += interest;
         }
         if (hasExtra && balanceExtra > 0) {
           const interest = balanceExtra * monthlyRate;
           let payment = extraPaymentForYear;
           if (payment > balanceExtra + interest) payment = balanceExtra + interest;
           balanceExtra = balanceExtra + interest - payment;
+          extraInterestForYear += interest;
         }
       }
 
@@ -146,8 +151,10 @@
       rows.push({
         year,
         standardPayment: standardPaymentForYear,
+        standardInterest: standardInterestForYear,
         standardBalance: balanceStandard,
         extraPayment: hasExtra && !wasPaidOffBeforeThisYear ? extraPaymentForYear : null,
+        extraInterest: hasExtra && !wasPaidOffBeforeThisYear ? extraInterestForYear : null,
         extraBalance: hasExtra ? balanceExtra : null,
         extraJustPaidOff: hasExtra && !wasPaidOffBeforeThisYear && extraPaidOff,
       });
